@@ -2,10 +2,10 @@
 #define SR_NODE_EXAMPLE_CORE_H
 
 // ROS includes.
-#include "ros/ros.h"
-#include "ros/time.h"
-#include <visualization_msgs/Marker.h>
-#include<sensor_msgs/Imu.h>
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/imu.hpp"
+#include "visualization_msgs/msg/marker.hpp"
+#include <sensor_msgs/msg/imu.hpp>
 #include <Eigen/Dense>
 #include <cmath>
 // Custom message includes. Auto-generated from msg/ directory.
@@ -30,22 +30,22 @@ struct Pose
     Eigen::Matrix3d orien;
 };
 
-class ImuIntegrator
+class ImuIntegrator : public rclcpp::Node
 {
 private:
     Pose pose;
-    ros::Time time;
+    rclcpp::Time time;
     Eigen::Vector3d gravity;
     Eigen::Vector3d velocity;
-    visualization_msgs::Marker path;
-    ros::Publisher line_pub;
+    visualization_msgs::msg::Marker path;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr line_pub_;
+    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr data_sub_;
     double deltaT;
     bool firstT;
 public:
     //! Constructor.
-    ImuIntegrator(const ros::Publisher&);
+    ImuIntegrator(const std::string& topic);
     //! Destructor.
-    ~ImuIntegrator();
 
     //! Callback function for dynamic reconfigure server.
     //void configCallback(node_example::node_example_paramsConfig &config, uint32_t level);
@@ -54,12 +54,12 @@ public:
     void publishMessage();
 
     //! Callback function for subscriber.
-    void ImuCallback(const sensor_msgs::Imu &msg);
+    void ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg);
 
-    void setGravity(const geometry_msgs::Vector3 &msg);
+    void setGravity(const geometry_msgs::msg::Vector3& msg);
     void updatePath(const Eigen::Vector3d &msg);
-    void calcPosition(const geometry_msgs::Vector3 &msg);
-    void calcOrientation(const geometry_msgs::Vector3 &msg);
+    void calcPosition(const geometry_msgs::msg::Vector3& msg);
+    void calcOrientation(const geometry_msgs::msg::Vector3& msg);
 };
 
 #endif // SR_NODE_EXAMPLE_CORE_H
