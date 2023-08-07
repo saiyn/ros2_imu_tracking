@@ -49,6 +49,9 @@ void ImuIntegrator::ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
     firstT = false;
   } else {
     deltaT = (rclcpp::Time(msg->header.stamp) - time).seconds();
+
+    RCLCPP_INFO(this->get_logger(), "deltaT update:(%f).", deltaT);
+
     time = msg->header.stamp;
     calcOrientation(msg->angular_velocity);
     calcPosition(msg->linear_acceleration);
