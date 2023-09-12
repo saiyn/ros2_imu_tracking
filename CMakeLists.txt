@@ -19,11 +19,11 @@ find_package(Eigen3 REQUIRED)
 
 include_directories(include ${EIGEN3_INCLUDE_DIR})
 
-add_executable(Imu_Integrator_node src/Imu_Integrator.cpp)
-ament_target_dependencies(Imu_Integrator_node rclcpp std_msgs visualization_msgs)
+add_executable(imu_integrator_node src/Imu_Integrator.cpp)
+ament_target_dependencies(imu_integrator_node rclcpp std_msgs visualization_msgs)
 
 install(TARGETS
-  Imu_Integrator_node
+  imu_integrator_node
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
