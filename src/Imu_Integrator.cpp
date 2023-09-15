@@ -131,12 +131,12 @@ ImuIntegrator::ImuIntegrator(const std::string& topic)
 
 
 
-  line_pub_  = this->create_publisher<visualization_msgs::msg::Marker>(topic, 10);
+  line_pub_  = this->create_publisher<visualization_msgs::msg::Marker>(topic, 1);
 
 
   data_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
     "/imu/data", 
-    10, 
+    1, 
     std::bind(&ImuIntegrator::ImuCallback, this, std::placeholders::_1)
   );
 
@@ -332,6 +332,11 @@ void ImuIntegrator::ImuUpdate(const geometry_msgs::msg::Vector3& gyr, const geom
   RCLCPP_INFO(this->get_logger(), "v:(%f, %f), length:(%f, %f)", x_est[1], y_est[1], x_est[0], y_est[0]);
 
 
+  pose.pos[0] = x_est[0];
+  pose.pos[1] = y_est[0];
+  pose.pos[2] = 0;
+
+
   //update error
   vec_err[X] =  (acc_norm[Y] * imu_->z_vec[Z] - imu_->z_vec[Y] * acc_norm[Z]);
   vec_err[Y] = -(acc_norm[X] * imu_->z_vec[Z] - imu_->z_vec[X] * acc_norm[Z]);
@@ -431,8 +436,8 @@ void ImuIntegrator::ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg) {
     time = msg->header.stamp;
     // calcOrientation(msg->angular_velocity);
     // calcPosition(msg->linear_acceleration);
-    // updatePath(pose.pos);
-    //publishMessage();
+    updatePath(pose.pos);
+    publishMessage();
   }
   // std::cout << pose.pos << std::endl;
 }
@@ -445,12 +450,21 @@ void ImuIntegrator::setGravity(const geometry_msgs::msg::Vector3& msg) {
 
 void ImuIntegrator::updatePath(const Eigen::Vector3d &msg) {
   geometry_msgs::msg::Point p;
-  p.x = msg[0];
-  p.y = msg[1];
-  p.z = msg[2];
-  path.points.push_back(p);
+  // p.x = msg[0];
+  // p.y = msg[1];
+  // p.z = msg[2];
 
-  //RCLCPP_INFO(this->get_logger(), "point update(%f, %f, %f).", p.x, p.y, p.z);
+
+  p.x = imu_->w_acc[0];
+  p.y = imu_->w_acc[1];
+
+  path.pose.position.x = x_est[0];
+  path.pose.position.y = y_est[0];
+
+  //path.points.push_back(p);
+  path.points.insert(path.points.begin(), p);
+
+  RCLCPP_INFO(this->get_logger(), "point update(%f, %f, %f).", p.x, p.y, p.z);
 }
 
 void ImuIntegrator::publishMessage() { line_pub_->publish(path); }
